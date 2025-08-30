@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Bubble Game 🎈</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
+    height: 100vh;
+    justify-content: center;
+    overflow: hidden;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+  #gameContainer {
+    position: relative;
+    width: 95vw;
+    max-width: 450px;
+    height: 75vh;
+    border: 2px solid #fff;
+    background-color: rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 15px;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+  #score, #level {
+    font-size: 18px;
+    margin: 5px;
+  }
+  #levelUp {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    color: gold;
+    display: none;
+    text-shadow: 0 0 10px #fff;
+  }
+  #logos {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+  }
+  #logos img {
+    width: 35px;
+    height: auto;
+    opacity: 0.8;
+  }
+  /* Buttons container */
+  #buttonsContainer {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+    width: 95vw;
+    max-width: 450px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+  }
+  #contactBtn {
+    background-color: #FFC439;
+    color: #000;
+  }
+  #donateBtn {
+    background-color: #28a745;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<h1>Color Bubble Game 🎈</h1>
+<div id="score">Score: 0</div>
+<div id="level">Level: 1</div>
+<div id="gameContainer">
+  <div id="logos">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="levelUp">🎉 Level Up! 🎉</div>
+</div>
+
+<!-- Buttons -->
+<div id="buttonsContainer">
+  <button class="btn" id="contactBtn">Contact Us 📧</button>
+  <button class="btn" id="donateBtn">Donate 💖</button>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const container = document.getElementById("gameContainer");
+
+function resizeCanvas(){
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+let score = 0;
+let level = 1;
+let boostActive = false;
+let boostTimer = 0;
+document.getElementById("score").innerText = "Score: "+score;
+document.getElementById("level").innerText = "Level: "+level;
+
+const colors = ["#ff4d4d","#4dff4d","#4d4dff","#ffff4d","#ff4dff"];
+const bubbles = [];
+let bubbleInterval = 800;
+let minInterval = 200;
+let speedMultiplier = 1.0;
+
+// Sounds
+const popSounds = [
+  new Audio('https://actions.google.com/sounds/v1/cartoon/pop.ogg'),
+  new Audio('https://actions.google.com/sounds/v1/cartoon/balloon_pop.ogg'),
+  new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg')
+];
+popSounds.forEach(s=>s.volume=0.5);
+
+const goldSound = new Audio('https://actions.google.com/sounds/v1/cartoon/metal_twang.ogg');
+goldSound.volume = 0.7;
+
+const cheerSound = new Audio('https://actions.google.com/sounds/v1/cartoon/cheering.ogg');
+cheerSound.volume = 0.5;
+
+const levelUpSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+levelUpSound.volume = 0.6;
+
+// Generate bubbles
+function spawnBubble(){
+  const radius = Math.random()*20+20;
+  const isGold = Math.random() < 0.05;
+  bubbles.push({
+    x: Math.random()*(canvas.width-radius*2)+radius,
+    y: canvas.height + radius,
+    radius: radius,
+    color: isGold ? "#FFD700" : colors[Math.floor(Math.random()*colors.length)],
+    dy: (Math.random()*1.5 + 1) * speedMultiplier,
+    dx: (Math.random()-0.5)*0.5,
+    gold: isGold,
+    scale: 1
+  });
+}
+
+// Draw bubbles
+function drawBubbles(){
+  bubbles.forEach(b=>{
+    ctx.save();
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = b.gold ? 25 : 15;
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.radius * b.scale, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// Update bubbles
+function updateBubbles(){
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    b.y -= b.dy;
+    b.x += b.dx;
+    if(b.y + b.radius < 0) bubbles.splice(i,1);
+    if(b.scale > 1) b.scale -= 0.05;
+  }
+}
+
+// Pop bubble
+function popBubble(x,y){
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    const dist = Math.sqrt((x-b.x)**2 + (y-b.y)**2);
+    if(dist <= b.radius){
+      if(b.gold){
+        score += boostActive ? 10 : 5;
+        goldSound.currentTime = 0;
+        goldSound.play().catch(()=>{});
+        boostActive = true; boostTimer = 5000;
+      } else {
+        score += boostActive ? 2 : 1;
+        const sound = popSounds[Math.floor(Math.random()*popSounds.length)];
+        sound.currentTime = 0;
+        sound.play().catch(()=>{});
+      }
+
+      if(score % 20 === 0){
+        cheerSound.currentTime = 0;
+        cheerSound.play().catch(()=>{});
+      }
+
+      document.getElementById("score").innerText = "Score: "+score;
+      b.scale = 1.5;
+      bubbles.splice(i,1);
+
+      speedMultiplier += 0.02;
+      if(bubbleInterval > minInterval) bubbleInterval -= 5;
+
+      checkLevelUp();
+      break;
+    }
+  }
+}
+
+// Level up
+function checkLevelUp(){
+  const newLevel = Math.floor(score/50)+1;
+  if(newLevel > level){
+    level = newLevel;
+    document.getElementById("level").innerText = "Level: "+level;
+    levelUpSound.currentTime = 0;
+    levelUpSound.play().catch(()=>{});
+    const el = document.getElementById("levelUp");
+    el.style.display = "block";
+    setTimeout(()=>el.style.display = "none", 1500);
+    speedMultiplier += 0.2;
+    bubbleInterval = Math.max(minInterval, bubbleInterval-50);
+  }
+}
+
+// Handle clicks and touches
+canvas.addEventListener("mousedown", e=>{
+  const rect = canvas.getBoundingClientRect();
+  popBubble(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener("touchstart", e=>{
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  popBubble(touch.clientX - rect.left, touch.clientY - rect.top);
+});
+
+// Game loop
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBubbles();
+  updateBubbles();
+  if(boostActive){
+    boostTimer -= 16;
+    if(boostTimer <=0) boostActive = false;
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+
+// Bubble spawner
+function bubbleSpawner(){
+  spawnBubble();
+  setTimeout(bubbleSpawner, bubbleInterval);
+}
+bubbleSpawner();
+
+// Contact button
+document.getElementById("contactBtn").addEventListener("click", ()=>{
+  window.location.href = "mailto:map.khareeta@gmail.com?subject=Color%20Bubble%20Game%20Inquiry";
+});
+
+// Donate button
+document.getElementById("donateBtn").addEventListener("click", ()=>{
+  window.open("https://www.paypal.com/ncp/payment/DUZZ9KMXUG4RN", "_blank");
+});
+</script>
+
+</body>
+</html>
