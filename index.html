@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STRESS Bubble Game 🎈</title>
+<title>Color Bubble Game 🎈</title>
 <style>
   body {
     margin: 0;
@@ -13,18 +13,55 @@
     align-items: center;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     color: #fff;
-    height: 100vh;
-    justify-content: center;
+    min-height: 100vh;
+    justify-content: flex-start;
+    padding-top: 10px;
     overflow: hidden;
   }
   h1 {
-    font-size: 24px;
-    margin: 10px 0;
+    font-size: 22px;
+    margin: 5px 0;
+  }
+
+  /* Buttons Container أعلى اللعبة */
+  #buttonsContainer {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    width: 95vw;
+    max-width: 450px;
+    padding: 5px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+  }
+  .btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 6px 0;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+  }
+  #contactBtn {
+    background-color: #FFC439;
+    color: #000;
+  }
+  #donateBtn {
+    background-color: #28a745;
+    color: #fff;
+  }
+
+  #score, #level {
+    font-size: 16px;
+    margin: 5px;
   }
   #gameContainer {
     position: relative;
     width: 95vw;
-    height: 75vh;
+    height: 70vh;
     border: 2px solid #fff;
     background-color: rgba(255,255,255,0.05);
     display: flex;
@@ -37,10 +74,6 @@
     width: 100%;
     height: 100%;
     touch-action: none;
-  }
-  #score, #level {
-    font-size: 18px;
-    margin: 5px;
   }
   #levelUp {
     position: absolute;
@@ -61,43 +94,22 @@
     gap: 10px;
   }
   #logos img {
-    width: 35px;
+    width: 30px;
     height: auto;
     opacity: 0.8;
-  }
-  /* Buttons container */
-  #buttonsContainer {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 10px;
-    width: 100%;
-    padding: 0 5px;
-    box-sizing: border-box;
-  }
-  .btn {
-    flex: 1;
-    min-width: 100px;
-    padding: 10px 0;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-  }
-  #contactBtn {
-    background-color: #FFC439;
-    color: #000;
-  }
-  #donateBtn {
-    background-color: #28a745;
-    color: #fff;
   }
 </style>
 </head>
 <body>
 
-<h1>Color Bubble Game 🎈</h1>
+<h1>stress Bubble Game 🎈</h1>
+
+<!-- Buttons فوق اللعبة -->
+<div id="buttonsContainer">
+  <button class="btn" id="contactBtn">Contact Us 📧</button>
+  <button class="btn" id="donateBtn">Donate 💖</button>
+</div>
+
 <div id="score">Score: 0</div>
 <div id="level">Level: 1</div>
 <div id="gameContainer">
@@ -108,12 +120,6 @@
   </div>
   <canvas id="gameCanvas"></canvas>
   <div id="levelUp">🎉 Level Up! 🎉</div>
-</div>
-
-<!-- Buttons -->
-<div id="buttonsContainer">
-  <button class="btn" id="contactBtn">Contact Us 📧</button>
-  <button class="btn" id="donateBtn">Donate 💖</button>
 </div>
 
 <script>
@@ -282,12 +288,10 @@ function bubbleSpawner(){
 }
 bubbleSpawner();
 
-// Contact button
+// Buttons actions
 document.getElementById("contactBtn").addEventListener("click", ()=>{
   window.location.href = "mailto:map.khareeta@gmail.com?subject=Color%20Bubble%20Game%20Inquiry";
 });
-
-// Donate button
 document.getElementById("donateBtn").addEventListener("click", ()=>{
   window.open("https://www.paypal.com/ncp/payment/DUZZ9KMXUG4RN", "_blank");
 });
@@ -295,4 +299,3 @@ document.getElementById("donateBtn").addEventListener("click", ()=>{
 
 </body>
 </html>
-
